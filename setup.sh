@@ -6,3 +6,16 @@ sudo tar xf gcc-arm-none-eabi.tar.xz --strip-components=1 -C /opt/gcc-arm-none-e
 
 echo 'export PATH=$PATH:/opt/gcc-arm-none-eabi/bin' | sudo tee -a /etc/profile.d/gcc-arm-none-eabi.sh
 git clone https://github.com/jhswartz/rk3229
+cd rk3229
+
+mkdir build
+build() { log=$1; shift 1; (date; echo; time make $@) 2>&1 | tee $log; }
+export BUILD=`readlink -f build`
+export ARCH=arm
+export CROSS_COMPILE=arm-linux-gnueabihf-
+
+cd $BUILD
+git clone https://github.com/OP-TEE/optee_os.git
+cd optee_os
+git checkout -b 3.7.0/rk3229 3.7.0
+build build-optee.log CFG_TEE_BENCHMARK=n CFG_TEE_CORE_LOG_LEVEL=3 DEBUG=1 PLATFORM=rockchip-rk322x -j2
